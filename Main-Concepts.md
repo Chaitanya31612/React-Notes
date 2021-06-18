@@ -1,5 +1,11 @@
 # React Notes
 
+## Table of Contents
+1. [Asynchronous state updates](#asynchronous-state-updates)
+2. [Handling Events](#handling-events)
+3. [List and Keys](#lists-and-keys)
+4. [Forms](#forms)
+
 ## Asynchronous state updates
 
 React may batch multiple setState() calls into a single update for performance.

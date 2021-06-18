@@ -21,15 +21,15 @@ eg - aria-* attributes.
 
 ### Semantic HTML
 Often div is used to wrap some items, instead of that `Fragments` can be used. 
-```
+```jsx
 <Fragment>
-      <dt>{item.term}</dt>
-      <dd>{item.description}</dd>
-    </Fragment>
+  <dt>{item.term}</dt>
+  <dd>{item.description}</dd>
+</Fragment>
 ```
 
 You can map a collection of items to an array of fragments as you would any other type of element as well:
-```
+```jsx
 {props.items.map(item => (
         // Fragments should also have a `key` prop when mapping collections
         <Fragment key={item.id}>
@@ -118,7 +118,7 @@ When using a HOC to extend components, it is recommended to forward the ref to t
 
 -Context is designed to share data that can be considered “global” for a tree of React components, such as the current authenticated user, theme, or preferred language. For example, in the code below we manually thread through a “theme” prop in order to style the Button component:
 
-```
+```jsx
 // The Toolbar component must take an extra "theme" prop and pass it to the ThemedButton. This can become painful if every single button in the app needs to know the theme because it would have to be passed through all components.
 
 class App extends React.Component {
@@ -145,12 +145,12 @@ class ThemedButton extends React.Component {
 <i> Solution </i><br>
 Using context, we can avoid passing props through intermediate elements:
 
-```
+```jsx
 // Context lets us pass a value deep into the component tree without explicitly threading it through every component. Create a context for the current theme (with "light" as the default).
 
 const ThemeContext = React.createContext('light');
 ```
-```
+```jsx
 // Use a Provider to pass the current theme to the tree below. Any component can read it, no matter how deep it is. In this example, we're passing "dark" as the current value.
 
 class App extends React.Component {
@@ -163,7 +163,7 @@ class App extends React.Component {
   }
 }
 ```
-```
+```jsx
 // A component in the middle doesn't have to
 // pass the theme down explicitly anymore.
 
@@ -177,7 +177,7 @@ function Toolbar() {
 ```
 
 In class Based:
-```
+```jsx
 class ThemedButton extends React.Component {
   
 // Assign a contextType to read the current theme context. React will find the closest theme Provider above and use its value. In this example, the current theme is "dark".
@@ -185,11 +185,11 @@ class ThemedButton extends React.Component {
 static contextType = ThemeContext;
 render() {
   return <Button theme={this.context} />;
-}
+}}
 ```
 
 In functional components:
-```
+```jsx
 const ThemeButton = () => {
   const theme = useContext(ThemeContext)
   return (
@@ -209,7 +209,7 @@ If you only want to avoid passing some props through many levels, component comp
 
 
 Instead of this below:
-```
+```jsx
 <Page user={user} avatarSize={avatarSize} />
 // ... which renders ...
 <PageLayout user={user} avatarSize={avatarSize} />
@@ -223,7 +223,7 @@ Instead of this below:
 
 One way to solve this issue without context is to pass down the Avatar component itself so that the intermediate components don’t need to know about the user or avatarSize props:
 
-```
+```jsx 
 function Page(props) {
   const user = props.user;
   const userLink = (
@@ -233,7 +233,8 @@ function Page(props) {
   );
   return <PageLayout userLink={userLink} />;
 }
-
+```
+```
 // Now, we have:
 <Page user={user} avatarSize={avatarSize} />
 // ... which renders ...
@@ -286,7 +287,7 @@ let value = this.context;
 - Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed. Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
 - A class component becomes an error boundary if it defines either (or both) of the lifecycle methods static getDerivedStateFromError() or componentDidCatch(). Use static getDerivedStateFromError() to render a fallback UI after an error has been thrown. Use componentDidCatch() to log error information.
 
-```
+```jsx
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -313,7 +314,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 ```
-```
+```jsx
 <ErrorBoundary>
   <MyWidget />
 </ErrorBoundary>
@@ -329,7 +330,7 @@ Ref forwarding is a technique for automatically passing a ref through a componen
 
 Refs are a function provided by React to access the DOM element and the React element that you might have created on your own. They are used in cases where we want to change the value of a child component, without making use of props and all.
 
-```
+```jsx
 function FancyButton(props) {
   return (
     <button className="FancyButton">
@@ -345,7 +346,7 @@ function FancyButton(props) {
 Ref forwarding is an opt-in feature that lets some components take a ref they receive, and pass it further down (in other words, “forward” it) to a child.
 
 In the example below, FancyButton uses React.forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders:
-```
+```jsx
 const FancyButton = React.forwardRef((props, ref) => (
   <button ref={ref} className="FancyButton">
     {props.children}
@@ -366,7 +367,7 @@ Here is a step-by-step explanation of what happens in the above example:
 5. When the ref is attached, `ref.current` will point to the `<button>` DOM node.
 
 and can use ref.current to access the element and change its behavior
-```
+```jsx
 <button ref={ref} onClick={() => handleClick(ref)}>...</button>
 const handleClick = (ref) => {
   ref.current.innerText = "Changed"
@@ -381,7 +382,7 @@ const handleClick = (ref) => {
 A common pattern in React is for a component to return multiple elements. Fragments let you group a list of children without adding extra nodes to the DOM.
 
 ### Use of Fragments
-```
+```jsx
 class Table extends React.Component {
   render() {
     return (
@@ -395,7 +396,7 @@ class Table extends React.Component {
 }
 ```
 
-```
+```jsx
 // In this using <div> for wrapping <td> elements make the syntax invalid when they will be placed in Table Component
 class Columns extends React.Component {
   render() {
@@ -410,7 +411,7 @@ class Columns extends React.Component {
 ```
 
 result is:
-```
+```html
 // Invalid
 <table>
   <tr>
@@ -423,7 +424,7 @@ result is:
 ```
 
 Fragments solve this issue as they just return the encapsulated elements inside it
-```
+```jsx
 class Columns extends React.Component {
   render() {
     return (
@@ -439,7 +440,7 @@ class Columns extends React.Component {
 ### Keyed Fragments
 Fragments declared with the explicit `<React.Fragment> `syntax may have keys. A use case for this is mapping a collection to an array of fragments — for example, to create a description list:
 
-```
+```jsx
 {props.items.map(item => (
   // Without the `key`, React will fire a key warning
   <React.Fragment key={item.id}>
@@ -457,7 +458,97 @@ Fragments declared with the explicit `<React.Fragment> `syntax may have keys. A 
 
 
 ---
-
 <br>
 
 ## Higher Order Components
+A higher-order component (HOC) is an advanced technique in React for reusing component logic. HOCs are not part of the React API, per se. They are a pattern that emerges from React’s compositional nature.
+
+Concretely, a higher-order component is a function that takes a component and returns a new component.
+
+```jsx
+const EnhancedComponent = higherOrderComponent(WrappedComponent);
+```
+
+- Whereas a component transforms props into UI, a higher-order component transforms a component into another component.
+
+- HOCs are common in third-party React libraries, such as Redux’s connect and Relay’s createFragmentContainer.
+
+```jsx
+const newData = {
+  data: "From Higher Order Component"
+}
+
+// Higher Order Component is just a javascript function and can take any number of arguments along with the WrappedComponent
+const HOC = (WrappedComponent, newData) => {
+  // this with return a class or function
+  return class extends React.Component {
+    componentDidMount() {
+      this.setState({
+        data: newData.data
+      });
+    }
+
+    render() {
+      return <WrappedComponent {...this.state} {...this.props} />
+    }
+  }
+}
+
+const ListComponent = (props) => {
+  console.log(props)
+
+  return (
+    <div>
+      {props.data}
+    </div>
+  )
+}
+
+
+
+export default HOC(ListComponent, newData)
+```
+
+HOC can be used when components differ by the data that is coming and the underlining implementation is the same. So to reduce the duplication and redundency of the code HOC can be used.
+
+
+#### Don’t Mutate the Original Component. Use Composition.
+Resist the temptation to modify a component’s prototype (or otherwise mutate it) inside a HOC.
+```jsx
+function logProps(InputComponent) {
+  InputComponent.prototype.componentDidUpdate = function(prevProps) {
+    console.log('Current props: ', this.props);
+    console.log('Previous props: ', prevProps);
+  };
+  // The fact that we're returning the original input is a hint that it has
+  // been mutated.
+  return InputComponent;
+}
+
+// EnhancedComponent will log whenever props are received
+const EnhancedComponent = logProps(InputComponent);
+```
+
+- There are a few problems with this. One is that the input component cannot be reused separately from the enhanced component. More crucially, if you apply another HOC to EnhancedComponent that also mutates componentDidUpdate, the first HOC’s functionality will be overridden! This HOC also won’t work with function components, which do not have lifecycle methods.
+
+- Mutating HOCs are a leaky abstraction—the consumer must know how they are implemented in order to avoid conflicts with other HOCs.
+
+
+Instead of mutation, HOCs should use composition, by wrapping the input component in a container component:
+```jsx
+function logProps(WrappedComponent) {
+  return class extends React.Component {
+    componentDidUpdate(prevProps) {
+      console.log('Current props: ', this.props);
+      console.log('Previous props: ', prevProps);
+    }
+    render() {
+      // Wraps the input component in a container, without mutating it. Good!
+      return <WrappedComponent {...this.props} />;
+    }
+  }
+}
+```
+This HOC has the same functionality as the mutating version while avoiding the potential for clashes. 
+
+Example of HOC are like the connect function in redux and in relay.
