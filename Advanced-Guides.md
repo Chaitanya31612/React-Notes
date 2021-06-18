@@ -1,5 +1,13 @@
 # Advanced Guide
 
+## Table of Contents
+1. [Accessibility](#accessibility)
+2. [Context](#context)
+3. [Error Boundaries](#error-boundaries)
+4. [Forwarding Refs](#forwarding-refs)
+5. [Fragments](#fragments)
+6. [Higher Order Components](#higher-order-components)
+
 ## Accessibility
 These accessibility features are essential for a good web experience.
 
@@ -311,3 +319,145 @@ class ErrorBoundary extends React.Component {
 </ErrorBoundary>
 ```
 
+---
+<br>
+
+## Forwarding Refs
+Ref forwarding is a technique for automatically passing a ref through a component to one of its children.
+
+### Forwarding refs to DOM components
+
+Refs are a function provided by React to access the DOM element and the React element that you might have created on your own. They are used in cases where we want to change the value of a child component, without making use of props and all.
+
+```
+function FancyButton(props) {
+  return (
+    <button className="FancyButton">
+      {props.children}
+    </button>
+  );
+}
+```
+
+`<FancyButton>Hello(this is children prop)</FancyButton>`
+
+
+Ref forwarding is an opt-in feature that lets some components take a ref they receive, and pass it further down (in other words, “forward” it) to a child.
+
+In the example below, FancyButton uses React.forwardRef to obtain the ref passed to it, and then forward it to the DOM button that it renders:
+```
+const FancyButton = React.forwardRef((props, ref) => (
+  <button ref={ref} className="FancyButton">
+    {props.children}
+  </button>
+));
+
+// You can now get a ref directly to the DOM button:
+const ref = React.createRef();
+<FancyButton ref={ref}>Click me!</FancyButton>;
+```
+
+Here is a step-by-step explanation of what happens in the above example:
+
+1. We create a React ref by calling React.createRef and assign it to a ref variable.
+2. We pass our ref down to `<FancyButton ref={ref}>` by specifying it as a JSX attribute.
+3. React passes the ref to the (props, ref) => ... function inside forwardRef as a second argument.
+4. We forward this ref argument down to `<button ref={ref}>` by specifying it as a JSX attribute.
+5. When the ref is attached, `ref.current` will point to the `<button>` DOM node.
+
+and can use ref.current to access the element and change its behavior
+```
+<button ref={ref} onClick={() => handleClick(ref)}>...</button>
+const handleClick = (ref) => {
+  ref.current.innerText = "Changed"
+}
+```
+
+---
+
+<br>
+
+## Fragments
+A common pattern in React is for a component to return multiple elements. Fragments let you group a list of children without adding extra nodes to the DOM.
+
+### Use of Fragments
+```
+class Table extends React.Component {
+  render() {
+    return (
+      <table>
+        <tr>
+          <Columns />
+        </tr>
+      </table>
+    );
+  }
+}
+```
+
+```
+// In this using <div> for wrapping <td> elements make the syntax invalid when they will be placed in Table Component
+class Columns extends React.Component {
+  render() {
+    return (
+      <div>
+        <td>Hello</td>
+        <td>World</td>
+      </div>
+    );
+  }
+}
+```
+
+result is:
+```
+// Invalid
+<table>
+  <tr>
+    <div>
+      <td>Hello</td>
+      <td>World</td>
+    </div>
+  </tr>
+</table>
+```
+
+Fragments solve this issue as they just return the encapsulated elements inside it
+```
+class Columns extends React.Component {
+  render() {
+    return (
+      <React.Fragments>
+        <td>Hello</td>
+        <td>World</td>
+      </React.Fragments>
+    );
+  }
+}
+```
+
+### Keyed Fragments
+Fragments declared with the explicit `<React.Fragment> `syntax may have keys. A use case for this is mapping a collection to an array of fragments — for example, to create a description list:
+
+```
+{props.items.map(item => (
+  // Without the `key`, React will fire a key warning
+  <React.Fragment key={item.id}>
+    <dt>{item.term}</dt>
+    <dd>{item.description}</dd>
+  </React.Fragment>
+))}
+```
+
+### Advantages of Fragments
+- It’s a tiny bit faster and has less memory usage (no need to create an extra DOM node). This only has a real benefit on very large and/or deep trees, but application performance often suffers from death by a thousand cuts. This is one cut less.
+- Some CSS mechanisms like Flexbox and CSS Grid have a special parent-child relationship, and adding divs in the middle makes it hard to keep the desired layout while extracting logical components.
+- The DOM inspector is less cluttered.
+- So the fact that fragments eliminate the wrapper div which can cause problems with invalid HTML and with styling of the components plus the fact that they are faster and the DOM is less cluttered, I’d say they are worth using.
+
+
+---
+
+<br>
+
+## Higher Order Components
