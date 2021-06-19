@@ -8,6 +8,7 @@
 5. [Fragments](#fragments)
 6. [Higher Order Components](#higher-order-components)
 7. [JSX In Depth](#jsx-in-depth)
+8. [Optimizing Performance](#optimizing-performance)
 
 
 ## Accessibility
@@ -900,4 +901,5 @@ render(
 
 ### onRender Callback
 The Profiler requires an onRender function as a prop. React calls this function any time a component within the profiled tree “commits” an update. It receives parameters describing what was rendered and how long it took.
+
 
