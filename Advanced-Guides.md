@@ -7,6 +7,8 @@
 4. [Forwarding Refs](#forwarding-refs)
 5. [Fragments](#fragments)
 6. [Higher Order Components](#higher-order-components)
+7. [JSX In Depth](#jsx-in-depth)
+
 
 ## Accessibility
 These accessibility features are essential for a good web experience.
@@ -111,6 +113,8 @@ When using a HOC to extend components, it is recommended to forward the ref to t
 <br><br>
 
 ## Context
+### Table of Contents
+1. [API of context](#api-of-context)
 
 - Context provides a way to pass data through the component tree without having to pass props down manually at every level.
 
@@ -283,6 +287,8 @@ let value = this.context;
 <br>
 
 ## Error Boundaries
+
+
 - A JavaScript error in a part of the UI shouldn’t break the whole app. To solve this problem for React users, React 16 introduces a new concept of an “error boundary”.
 - Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed. Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
 - A class component becomes an error boundary if it defines either (or both) of the lifecycle methods static getDerivedStateFromError() or componentDidCatch(). Use static getDerivedStateFromError() to render a fallback UI after an error has been thrown. Use componentDidCatch() to log error information.
@@ -324,6 +330,10 @@ class ErrorBoundary extends React.Component {
 <br>
 
 ## Forwarding Refs
+### Table of Contents
+1. [Forwarding refs to DOM components](#forwarding-refs-to-dom-components)
+
+
 Ref forwarding is a technique for automatically passing a ref through a component to one of its children.
 
 ### Forwarding refs to DOM components
@@ -379,6 +389,12 @@ const handleClick = (ref) => {
 <br>
 
 ## Fragments
+### Table of Contents
+1. [Use of Fragments](#use-of-fragments)
+2. [Keyed Fragments](#keyed-fragments)
+3. [Advantages of Fragments](#advantages-of-fragments)
+
+
 A common pattern in React is for a component to return multiple elements. Fragments let you group a list of children without adding extra nodes to the DOM.
 
 ### Use of Fragments
@@ -458,9 +474,11 @@ Fragments declared with the explicit `<React.Fragment> `syntax may have keys. A 
 
 
 ---
+
 <br>
 
 ## Higher Order Components
+
 A higher-order component (HOC) is an advanced technique in React for reusing component logic. HOCs are not part of the React API, per se. They are a pattern that emerges from React’s compositional nature.
 
 Concretely, a higher-order component is a function that takes a component and returns a new component.
@@ -552,3 +570,334 @@ function logProps(WrappedComponent) {
 This HOC has the same functionality as the mutating version while avoiding the potential for clashes. 
 
 Example of HOC are like the connect function in redux and in relay.
+
+
+---
+
+## JSX in depth
+### Table of Contents
+1. [Specifying the React element type](#specifying-the-react-element-type)
+2. [Props in JSX](#props-in-jsx)
+3. [Children in Props](#children-in-props)
+
+Fundamentally, JSX just provides syntactic sugar for the React.createElement(component, props, ...children) function. The JSX code:
+
+```jsx
+<MyButton color="blue" shadowSize={2}>
+  Click Me
+</MyButton>
+```
+
+this above compiles to:
+```jsx
+React.createElement(
+  MyButton,
+  {color: 'blue', shadowSize: 2},
+  'Click Me'
+)
+```
+
+You can also use the self-closing form of the tag if there are no children. So:
+
+```jsx
+<div className="sidebar" />
+```
+
+### Specifying the React element type
+- The first part of a JSX tag determines the type of the React element.
+- Capitalized types indicate that the JSX tag is referring to a React component. These tags get compiled into a direct reference to the named variable, so if you use the JSX <Foo /> expression, Foo must be in scope.
+
+- Since JSX compiles into calls to React.createElement, the React library must also always be in scope from your JSX code.
+- Starting from React 17 it's not necessary to import React to use JSX.
+  - If you don’t use a JavaScript bundler and loaded React from a `<script>`tag, it is already in scope as the React global.
+    
+#### Using Dot Notation for JSX Type
+```jsx
+const MyComponents = {
+  DatePicker: function DatePicker(props) {
+    return <div>Imagine a {props.color} datepicker here.</div>;
+  }
+}
+
+function BlueDatePicker() {
+  return <MyComponents.DatePicker color="blue" />;
+}
+```
+In this `DatePicker` Component is used from MyComponents which is an object of Components
+
+#### User-Defined Components Must Be Capitalized
+When an element type starts with a lowercase letter, it refers to a built-in component like <div> or <span> and results in a string 'div' or 'span' passed to React.createElement. Types that start with a capital letter like <Foo /> compile to React.createElement(Foo) and correspond to a component defined or imported in your JavaScript file.
+
+```jsx
+function HelloWorld() {
+  // Wrong! React thinks <hello /> is an HTML tag because it's not capitalized:
+  return <hello toWhat="World" />;
+}
+```
+
+#### Choosing the Type at Runtime
+```jsx
+import React from 'react';
+import { PhotoStory, VideoStory } from './stories';
+
+const components = {
+  photo: PhotoStory,
+  video: VideoStory
+};
+
+function Story(props) {
+  // Correct! JSX type can be a capitalized variable.
+  const SpecificStory = components[props.storyType];
+  return <SpecificStory story={props.story} />;
+}
+```
+
+### Props in JSX
+
+#### JavaScript Expressions as Props
+```jsx
+<MyComponent foo={1 + 2 + 3 + 4} />
+```
+For MyComponent, the value of props.foo will be 10 because the expression 1 + 2 + 3 + 4 gets evaluated.
+
+#### String Literals
+You can pass a string literal as a prop. These two JSX expressions are equivalent:
+```jsx
+<MyComponent message="hello world" />
+
+<MyComponent message={'hello world'} />
+```
+
+When you pass a string literal, its value is HTML-unescaped. So these two JSX expressions are equivalent:
+```jsx
+<MyComponent message="&lt;3" />
+
+<MyComponent message={'<3'} />
+```
+
+#### Props Default to “True”
+If you pass no value for a prop, it defaults to true. These two JSX expressions are equivalent:
+
+```jsx
+<MyTextBox autocomplete />
+
+<MyTextBox autocomplete={true} />
+```
+
+#### Spread Attributes
+If you already have props as an object, and you want to pass it in JSX, you can use ... as a “spread” operator to pass the whole props object. These two components are equivalent:
+
+```jsx
+function App1() {
+  return <Greeting firstName="Ben" lastName="Hector" />;
+}
+
+function App2() {
+  const props = {firstName: 'Ben', lastName: 'Hector'};
+  return <Greeting {...props} />;
+}
+```
+spread operator copies the entire object into a new object, it can also be mutated.
+{...props, otherkey: value}
+You can also pick specific props that your component will consume while passing all other props using the spread operator.
+
+```jsx
+const Button = props => {
+  const { kind, ...other } = props;
+  const className = kind === "primary" ? "PrimaryButton" : "SecondaryButton";
+  return <button className={className} {...other} />;
+};
+
+const App = () => {
+  return (
+    <div>
+      <Button kind="primary" onClick={() => console.log("clicked!")}>
+        Hello World!
+      </Button>
+    </div>
+  );
+};
+```
+
+In the example above, the `kind` prop is safely consumed and is not passed on to the `<button>` element in the DOM. All other props are passed via the `...other` object making this component really flexible. You can see that it passes an `onClick` and `children` props.
+
+
+### Children in Props
+In JSX expressions that contain both an opening tag and a closing tag, the content between those tags is passed as a special prop: props.children. There are several different ways to pass children:
+
+#### String Literals
+You can put a string between the opening and closing tags and props.children will just be that string. This is useful for many of the built-in HTML elements. For example:
+
+```jsx
+<MyComponent>Hello world!</MyComponent>
+```
+This is valid JSX, and props.children in MyComponent will simply be the string "Hello world!"
+
+JSX removes whitespace at the beginning and ending of a line. It also removes blank lines. New lines adjacent to tags are removed; new lines that occur in the middle of string literals are condensed into a single space. So these all render to the same thing:
+
+```html
+<div>Hello World</div>
+
+<div>
+  Hello World
+</div>
+
+<div>
+  Hello
+  World
+</div>
+
+<div>
+
+Hello World
+</div>
+```
+
+#### JSX Children
+You can provide more JSX elements as the children. This is useful for displaying nested components:
+
+A React component can also return an array of elements:
+
+```
+render() {
+  // No need to wrap list items in an extra element!
+  return [
+    // Don't forget the keys :)
+    <li key="A">First item</li>,
+    <li key="B">Second item</li>,
+    <li key="C">Third item</li>,
+  ];
+}
+```
+
+#### JavaScript Expressions as Children
+You can pass any JavaScript expression as children, by enclosing it within {}. For example, these expressions are equivalent:
+
+```jsx
+<MyComponent>foo</MyComponent>
+
+<MyComponent>{'foo'}</MyComponent>
+```
+
+JavaScript expressions can be mixed with other types of children. This is often useful in lieu of string templates:
+```jsx
+function Hello(props) {
+  return <div>Hello {props.addressee}!</div>;
+}
+```
+#### Functions as Children
+Children can be function as well
+```jsx
+// Calls the children callback numTimes to produce a repeated component
+function Repeat(props) {
+  let items = [];
+  for (let i = 0; i < props.numTimes; i++) {
+    items.push(props.children(i));
+  }
+  return <div>{items}</div>;
+}
+
+function ListOfTenThings() {
+  return (
+    <Repeat numTimes={10}>
+      {(index) => <div key={index}>This is item {index} in the list</div>}
+    </Repeat>
+  );
+}
+```
+
+#### Booleans, Null, and Undefined Are Ignored
+false, null, undefined, and true are valid children. They simply don’t render. These JSX expressions will all render to the same thing:
+
+
+## Optimizing Performance
+### Table of Contents
+1. [Use the Production Build](#use-the-production-build)
+2. [Avoid Reconciliation](#avoid-reconciliation)
+
+
+Internally, React uses several clever techniques to minimize the number of costly DOM operations required to update the UI. For many applications, using React will lead to a fast user interface without doing much work to specifically optimize for performance. Nevertheless, there are several ways you can speed up your React application.
+
+
+### Use the Production Build
+- If you’re benchmarking or experiencing performance problems in your React apps, make sure you’re testing with the minified production build.
+- By default, React includes many helpful warnings. These warnings are very useful in development. However, they make React larger and slower so you should make sure to use the production version when you deploy the app.
+
+```
+npm run build
+```
+
+Running this command will generate the production build of the project in the `build/` folder
+
+
+### Avoid Reconciliation
+- React builds and maintains an internal representation of the rendered UI. It includes the React elements you return from your components. This representation lets React avoid creating DOM nodes and accessing existing ones beyond necessity, as that can be slower than operations on JavaScript objects. Sometimes it is referred to as a “virtual DOM”, but it works the same way on React Native.
+  
+
+- When a component’s props or state change, React decides whether an actual DOM update is necessary by comparing the newly returned element with the previously rendered one. When they are not equal, React will update the DOM.
+  
+
+- Even though React only updates the changed DOM nodes, re-rendering still takes some time. In many cases it’s not a problem, but if the slowdown is noticeable, you can speed all of this up by overriding the lifecycle function shouldComponentUpdate, which is triggered before the re-rendering process starts. The default implementation of this function returns true, leaving React to perform the update:
+  
+
+- If you know that in some situations your component doesn’t need to update, you can return false from shouldComponentUpdate instead, to skip the whole rendering process, including calling render() on this component and below.
+
+
+```js
+shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.color !== nextProps.color) {
+      return true;
+    }
+    if (this.state.count !== nextState.count) {
+      return true;
+    }
+    return false;
+  }
+
+```
+
+```jsx
+class CounterButton extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {count: 1};
+  }
+
+  render() {
+    return (
+      <button
+        color={this.props.color}
+        onClick={() => this.setState(state => ({count: state.count + 1}))}>
+        Count: {this.state.count}
+      </button>
+    );
+  }
+}
+```
+
+Most of the time, you can use React.PureComponent instead of writing your own shouldComponentUpdate. It only does a shallow comparison, so you can’t use it if the props or state may have been mutated in a way that a shallow comparison would miss.
+
+
+## Profiler API
+The Profiler measures how often a React application renders and what the “cost” of rendering is. Its purpose is to help identify parts of an application that are slow and may benefit from optimizations such as memoization.
+
+- Profiling adds some additional overhead, so it is disabled in the production build.
+- Although Profiler is a light-weight component, it should be used only when necessary; each use adds some CPU and memory overhead to an application.
+
+### Usage
+A Profiler can be added anywhere in a React tree to measure the cost of rendering that part of the tree. It requires two props: an id (string) and an onRender callback (function) which React calls any time a component within the tree “commits” an update.
+
+```jsx
+render(
+  <App>
+    <Profiler id="Navigation" onRender={callback}>
+      <Navigation {...props} />
+    </Profiler>
+    <Main {...props} />
+  </App>
+);
+```
+
+### onRender Callback
+The Profiler requires an onRender function as a prop. React calls this function any time a component within the profiled tree “commits” an update. It receives parameters describing what was rendered and how long it took.
+
