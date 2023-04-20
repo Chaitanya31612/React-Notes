@@ -251,6 +251,7 @@ List of concepts
 4. [useState Hook](#usestate-hook)
 5. [Render and Commit](#render-and-commit)
 6. [Looking state as a snapshot](#looking-state-as-a-snapshot-in-time)
+7. [State Updates (Important)](#state-updates)
 
 ## State Explained
 
@@ -389,7 +390,7 @@ This process of requesting and serving UI has three steps:
 2. Rendering the component (preparing the order in the kitchen)
 3. Committing to the DOM (placing the order on the table)
 
-![img.png](img.png)
+![img.png](assets/img-s.png)
 
 Step 1: Trigger a render
 There are two reasons for a component to render:
@@ -422,13 +423,13 @@ React only changes the DOM nodes if there’s a difference between renders
 - State is a components memory and does not disappear after function returns. It is preserved between renders.
 - When React calls your component, it gives you a snapshot of the state for that particular render. Your component returns a snapshot of the UI with a fresh set of props and event handlers in its JSX, all calculated using the state values from that render!
 
-![img_1.png](img_1.png)
+![img_1.png](assets/img_1p.png)
 
-![img_2.png](img_2.png)
+![img_2.png](assets/img_2.png)
 
 Notice that number only increments once per click!
 
-![img_3.png](img_3.png)
+![img_3.png](assets/img_3.png)
 
 This also indicates one more important thing: setState methods are asynchronous and batched. This means that if you call setState multiple times in a single render, React will batch the updates together and only re-render once.
 
@@ -449,5 +450,66 @@ React keeps the state values “fixed” within one render’s event handlers. Y
 Alert will show 0 because the state is not updated yet. It will be updated after the render is committed to the DOM.
 even if its event handler’s code is asynchronous, the state value is still “fixed” within that render.
 
-![img_4.png](img_4.png)
+![img_4.png](assets/img_4.png)
+
+## State Updates
+
+Setting a state variable will queue another render. But sometimes you might want to perform multiple operations on the value before queueing the next render. To do this, it helps to understand how React batches state updates.
+
+```jsx
+<button onClick={() => {
+  setNumber(number + 1);
+  setNumber(number + 1);
+  setNumber(number + 1);
+}}>+3</button>
+```
+
+React batches state updates and  each render’s state values are fixed, so the value of number inside the first render’s event handler is always 0, no matter how many times you call setNumber(1):
+
+React waits until all code in the event handlers has run before processing your state updates. This is why the re-render only happens after all these setNumber() calls.
+
+This might remind you of a waiter taking an order at the restaurant. A waiter doesn’t run to the kitchen at the mention of your first dish! Instead, they let you finish your order, let you make changes to it, and even take orders from other people at the table.
+
+This lets you update multiple state variables—even from multiple components—without triggering too many re-renders. 
+
+**Note**
+
+**React does not batch across multiple intentional events like clicks**—each click is handled separately. Rest assured that React only does batching when it’s generally safe to do. This ensures that, for example, if the first button click disables a form, the second click would not submit it again.
+
+### Updating the same state multiple times before the next render
+
+It is an uncommon use case, but if you would like to update the same state variable multiple times before the next render, instead of passing the next state value like setNumber(number + 1), you can pass a function that calculates the next state based on the previous one in the queue, like setNumber(n => n + 1). It is a way to tell React to “do something with the state value” instead of just replacing it.
+
+```jsx
+<button onClick={() => {
+  setNumber(n => n + 1);
+  setNumber(n => n + 1);
+  setNumber(n => n + 1);
+}}>+3</button>
+```
+
+This updates the number value by 3 after re-rendering, instead of 1 as it was in previous case where it was just replacing the value with the given one.
+
+Here, `n => n + 1` is called an updater function. When you pass it to a state setter:
+
+1. React queues this function to be processed after all the other code in the event handler has run.
+2. During the next render, React goes through the queue and gives you the final updated state.
+
+When you call `useState` during the next render, React goes through the queue. The previous number state was 0, so that’s what React passes to the first updater function as the n argument. Then React takes the return value of your previous updater function and passes it to the next updater as n, and so on:
+
+### What happens if you update state after replacing it 
+
+```jsx
+<button onClick={() => {
+  setNumber(number + 5);
+  setNumber(number + 1);
+  setNumber(n => n + 10);
+}}>Increase the number</button>
+```
+
+![img_5.png](assets/img_5.png)
+
+This is very important to understand that just using `number`, react was computing the value and will replace the value in next render.
+
+However, if updater function is used, it will consider the last updated value and will compute the next value based on that.
 
