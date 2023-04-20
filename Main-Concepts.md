@@ -245,7 +245,12 @@ function MyButton() {
 # React 18 Concepts
 
 List of concepts
-1. 
+1. [State Explained](#state-explained)
+2. [Multiple state variables](#multiple-state-variables)
+3. [When a regular function is not enough](#when-a-regular-function-is-not-enough)
+4. [useState Hook](#usestate-hook)
+5. [Render and Commit](#render-and-commit)
+6. [Looking state as a snapshot](#looking-state-as-a-snapshot-in-time)
 
 ## State Explained
 
@@ -376,4 +381,73 @@ function useState(initialState) {
 ```
 
 ![img_1.png](assets/img_1.png)
+
+### Render and Commit
+
+This process of requesting and serving UI has three steps:
+1. Triggering a render (delivering the guest’s order to the kitchen)
+2. Rendering the component (preparing the order in the kitchen)
+3. Committing to the DOM (placing the order on the table)
+
+![img.png](img.png)
+
+Step 1: Trigger a render
+There are two reasons for a component to render:
+
+1. It’s the component’s initial render.
+2. The component’s (or one of its ancestors’) state has been updated.
+
+Step 2: React renders your components
+After you trigger a render, React calls your components to figure out what to display on screen. “Rendering” is React calling your components.
+
+1. On initial render, React will call the root component.
+2. For subsequent renders, React will call the function component whose state update triggered the render.
+
+Step 3: React commits changes to the DOM
+After rendering (calling) your components, React will modify the DOM.
+
+1. For the initial render, React will use the appendChild() DOM API to put all the DOM nodes it has created on screen.
+2. For re-renders, React will apply the minimal necessary operations (calculated while rendering!) to make the DOM match the latest rendering output.
+
+React only changes the DOM nodes if there’s a difference between renders
+
+- After rendering is done and React updated the DOM, the browser will repaint the screen. Although this process is known as “browser rendering”, we’ll refer to it as “painting” to avoid confusion throughout the docs.
+
+### Looking state as a snapshot in time
+
+- “Rendering” means that React is calling your component, which is a function. The JSX you return from that function is like a snapshot of the UI in time. Its props, event handlers, and local variables were all calculated using its state at the time of the render.
+
+- Unlike a photograph or a movie frame, the UI “snapshot” you return is interactive. It includes logic like event handlers that specify what happens in response to inputs. React updates the screen to match this snapshot and connects the event handlers.
+
+- State is a components memory and does not disappear after function returns. It is preserved between renders.
+- When React calls your component, it gives you a snapshot of the state for that particular render. Your component returns a snapshot of the UI with a fresh set of props and event handlers in its JSX, all calculated using the state values from that render!
+
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
+
+Notice that number only increments once per click!
+
+![img_3.png](img_3.png)
+
+This also indicates one more important thing: setState methods are asynchronous and batched. This means that if you call setState multiple times in a single render, React will batch the updates together and only re-render once.
+
+**IMPORTANT**
+
+A state variable’s value never changes within a render. Its value was “fixed” when React “took the snapshot” of the UI by calling your component. If you want to update the state variable, you need to call setState.
+React keeps the state values “fixed” within one render’s event handlers. You don’t need to worry whether the state has changed while the code is running.
+
+```jsx
+<button onClick={() => {
+  setNumber(number + 5);
+  setTimeout(() => {
+    alert(number);
+  }, 3000);
+}}>+5</button>
+```
+
+Alert will show 0 because the state is not updated yet. It will be updated after the render is committed to the DOM.
+even if its event handler’s code is asynchronous, the state value is still “fixed” within that render.
+
+![img_4.png](img_4.png)
 
